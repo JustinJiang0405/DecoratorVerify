@@ -1,14 +1,26 @@
 #include "FirstApp.h"
 
-#include <stdexcept>
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
+
 #include <array>
+#include <cassert>
+#include <stdexcept>
 
 namespace Deco
 {
+	struct SimplePushConstantData
+	{
+		glm::mat2 transform{ 1.0f };
+		glm::vec2 offset;
+		alignas(16) glm::vec3 color;
+	};
 
 	FirstApp::FirstApp()
 	{
-		loadModels();
+		loadGameObjects();
 		createPipelineLayout();
 		recreateSwapChain();
 		createCommandBuffers();
@@ -30,7 +42,7 @@ namespace Deco
 		vkDeviceWaitIdle(m_deco_device.device());
 	}
 
-	void FirstApp::loadModels()
+	void FirstApp::loadGameObjects()
 	{
 #if 0
 		std::vector<DecoModel::Vertex> vertices{};
@@ -45,17 +57,31 @@ namespace Deco
 			{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
 		};
 	
-		m_deco_model = std::make_unique<DecoModel>(m_deco_device, vertices);
+		auto model = std::make_shared<DecoModel>(m_deco_device, vertices);
+
+		auto triangle = DecoGameObject::createGameObject();
+		triangle.m_model = model;
+		triangle.m_color = { 0.1f, 0.8f, 0.1f };
+		triangle.m_transform2d.m_translation.x = 0.2f;
+		triangle.m_transform2d.m_scale = { 2.0f, 0.5f };
+		triangle.m_transform2d.m_rotation = 0.25f * glm::two_pi<float>();
+
+		m_deco_game_objects.push_back(std::move(triangle));
 	}
 
 	void FirstApp::createPipelineLayout()
 	{
+		VkPushConstantRange push_constant_range{};
+		push_constant_range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+		push_constant_range.offset = 0;
+		push_constant_range.size = sizeof(SimplePushConstantData);
+
 		VkPipelineLayoutCreateInfo pipeline_layout_info{};
 		pipeline_layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		pipeline_layout_info.setLayoutCount = 0;
 		pipeline_layout_info.pSetLayouts = nullptr;
-		pipeline_layout_info.pushConstantRangeCount = 0;
-		pipeline_layout_info.pPushConstantRanges = nullptr;
+		pipeline_layout_info.pushConstantRangeCount = 1;
+		pipeline_layout_info.pPushConstantRanges = &push_constant_range;
 
 		if (vkCreatePipelineLayout(
 			m_deco_device.device(),
@@ -162,7 +188,7 @@ namespace Deco
 		render_pass_info.renderArea.extent = m_deco_swap_chain->getSwapChainExtent();
 
 		std::array<VkClearValue, 2> clear_values{};
-		clear_values[0].color = { 0.1f, 0.1f, 0.1f, 1.0f };
+		clear_values[0].color = { 0.01f, 0.01f, 0.01f, 1.0f };
 		clear_values[1].depthStencil = { 1.0f, 0 };
 		render_pass_info.clearValueCount = static_cast<uint32_t>(clear_values.size());
 		render_pass_info.pClearValues = clear_values.data();
@@ -180,9 +206,7 @@ namespace Deco
 		vkCmdSetViewport(m_command_buffers[image_index], 0, 1, &viewport);
 		vkCmdSetScissor(m_command_buffers[image_index], 0, 1, &scissor);
 
-		m_deco_pipeline->bind(m_command_buffers[image_index]);
-		m_deco_model->bind(m_command_buffers[image_index]);
-		m_deco_model->draw(m_command_buffers[image_index]);
+		renderGameObjects(m_command_buffers[image_index]);
 
 		vkCmdEndRenderPass(m_command_buffers[image_index]);
 
@@ -191,6 +215,32 @@ namespace Deco
 			throw std::runtime_error("Failed to record command buffers");
 		}
 
+	}
+
+	void FirstApp::renderGameObjects(VkCommandBuffer command_buffer)
+	{
+		m_deco_pipeline->bind(command_buffer);
+
+		for (auto& object : m_deco_game_objects)
+		{
+			object.m_transform2d.m_rotation = glm::mod(object.m_transform2d.m_rotation + 0.01f, glm::two_pi<float>());
+
+			SimplePushConstantData push{};
+			push.offset = object.m_transform2d.m_translation;
+			push.color = object.m_color;
+			push.transform = object.m_transform2d.mat2();
+
+			vkCmdPushConstants(
+				command_buffer,
+				m_pipeline_layout,
+				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+				0,
+				sizeof(SimplePushConstantData),
+				&push);
+
+			object.m_model->bind(command_buffer);
+			object.m_model->draw(command_buffer);
+		}
 	}
 
 	void FirstApp::drawFrame()

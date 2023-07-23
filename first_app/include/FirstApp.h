@@ -1,10 +1,10 @@
 #pragma once
 
-#include "deco_window.h"
-#include "deco_pipeline.h"
 #include "deco_device.h"
+#include "deco_game_object.h"
+#include "deco_pipeline.h"
 #include "deco_swap_chain.h"
-#include "deco_model.h"
+#include "deco_window.h"
 
 #include <memory>
 #include <vector>
@@ -26,7 +26,7 @@ namespace Deco
 		void run();
 
 	private:
-		void loadModels();
+		void loadGameObjects();
 		void createPipelineLayout();
 		void createPipeline();
 		void createCommandBuffers();
@@ -34,6 +34,7 @@ namespace Deco
 		void drawFrame();
 		void recreateSwapChain();
 		void recordCommandBuffer(int image_index);
+		void renderGameObjects(VkCommandBuffer command_buffer);
 
 		void sierpinski(std::vector<DecoModel::Vertex>& vertices, int depth, glm::vec2 left, glm::vec2 right, glm::vec2 top);
 	private:
@@ -43,7 +44,7 @@ namespace Deco
 		std::unique_ptr<DecoPipeline> m_deco_pipeline;
 		VkPipelineLayout m_pipeline_layout;
 		std::vector<VkCommandBuffer> m_command_buffers;
-		std::unique_ptr<DecoModel> m_deco_model;
+		std::vector<DecoGameObject> m_deco_game_objects;
 	};
 }
 
