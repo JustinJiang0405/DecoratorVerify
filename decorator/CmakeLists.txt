@@ -1,0 +1,49 @@
+#
+# decorator
+#
+
+file(GLOB DECORATOR_HEADER_FILES
+    ${DECORATOR_ROOT_DIR}/include/*.h
+)
+
+file(GLOB DECORATOR_SOURCE_FILES
+    ${DECORATOR_ROOT_DIR}/src/*.cpp
+)
+
+set(DEECORATOR_FILES
+    ${DECORATOR_HEADER_FILES}
+    ${DECORATOR_SOURCE_FILES}
+)
+
+add_library(Decorator STATIC ${DEECORATOR_FILES})
+
+target_include_directories(Decorator
+    PRIVATE ${DECORATOR_ROOT_DIR}/include
+)
+
+set(DECO_COMMON_COMPILE_DEF "")
+set(DECO_DEBUG_COMPILE_DEF "")
+set(DECO_RELEASE_COMPILE_DEF "")
+
+set(DECO_COMPILE_DEF
+    $<$<CONFIG:debug>:${DECO_DEBUG_COMPILE_DEF}>
+    $<$<CONFIG:release>:${DECO_RELEASE_COMPILE_DEF}>
+)
+target_compile_definitions(Decorator PRIVATE ${DECO_COMPILE_DEF})
+
+include_directories(
+    ${VULKAN_INCLUDE_DIR}
+    ${GLFW_INCLUDE_DIR}
+    ${GLM_INCLUDE_DIR}
+)
+
+add_custom_command(
+    TARGET Decorator
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/Debug ${CMAKE_CURRENT_SOURCE_DIR}/bin
+    COMMENT "Copying executable to bin directory"
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader_compiler.bat
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/shaders
+    COMMENT "Running shader_compiler"
+)
+
