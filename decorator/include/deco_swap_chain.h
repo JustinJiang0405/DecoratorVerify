@@ -10,9 +10,11 @@
 #include <string>
 #include <vector>
 
-namespace Deco {
+namespace Deco
+{
 
-	class DecoSwapChain {
+	class DecoSwapChain
+	{
 	public:
 		static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
@@ -33,7 +35,8 @@ namespace Deco {
 		uint32_t width() { return m_swap_chain_extent.width; }
 		uint32_t height() { return m_swap_chain_extent.height; }
 
-		float extentAspectRatio() {
+		float extentAspectRatio()
+		{
 			return static_cast<float>(m_swap_chain_extent.width) / static_cast<float>(m_swap_chain_extent.height);
 		}
 		VkFormat findDepthFormat();
@@ -41,7 +44,8 @@ namespace Deco {
 		VkResult acquireNextImage(uint32_t* image_index);
 		VkResult submitCommandBuffers(const VkCommandBuffer* buffers, uint32_t* image_index);
 
-		bool compareSwapFormats(const DecoSwapChain& swap_chain) const {
+		bool compareSwapFormats(const DecoSwapChain& swap_chain) const
+		{
 			return swap_chain.m_swap_chain_depth_format == m_swap_chain_depth_format &&
 				swap_chain.m_swap_chain_image_format == m_swap_chain_image_format;
 		}
@@ -56,10 +60,8 @@ namespace Deco {
 		void createSyncObjects();
 
 		// Helper functions
-		VkSurfaceFormatKHR chooseSwapSurfaceFormat(
-			const std::vector<VkSurfaceFormatKHR>& available_formats);
-		VkPresentModeKHR chooseSwapPresentMode(
-			const std::vector<VkPresentModeKHR>& available_presentModes);
+		VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& available_formats);
+		VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& available_presentModes);
 		VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
 		VkFormat m_swap_chain_image_format;
