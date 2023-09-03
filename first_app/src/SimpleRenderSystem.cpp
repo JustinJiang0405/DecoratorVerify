@@ -13,8 +13,7 @@ namespace Deco
 {
 	struct SimplePushConstantData
 	{
-		glm::mat2 transform{ 1.0f };
-		glm::vec2 offset;
+		glm::mat4 transform{ 1.0f };
 		alignas(16) glm::vec3 color;
 	};
 
@@ -68,18 +67,20 @@ namespace Deco
 			pipeline_config);
 	}
 
-	void SimpleRenderSystem::renderGameObjects(VkCommandBuffer command_buffer, std::vector<DecoGameObject>& game_objects)
+	void SimpleRenderSystem::renderGameObjects(VkCommandBuffer command_buffer, std::vector<DecoGameObject>& game_objects, const DecoCamera& camera)
 	{
 		m_deco_pipeline->bind(command_buffer);
 
+		auto projection_view = camera.getProjection() * camera.getView();
+
 		for (auto& object : game_objects)
 		{
-			object.m_transform2d.m_rotation = glm::mod(object.m_transform2d.m_rotation + 0.01f, glm::two_pi<float>());
+// 			object.m_transform.m_rotation.y = glm::mod(object.m_transform.m_rotation.y + 0.0001f, glm::two_pi<float>());
+// 			object.m_transform.m_rotation.x = glm::mod(object.m_transform.m_rotation.x + 0.00005f, glm::two_pi<float>());
 
 			SimplePushConstantData push{};
-			push.offset = object.m_transform2d.m_translation;
 			push.color = object.m_color;
-			push.transform = object.m_transform2d.mat2();
+			push.transform = projection_view * object.m_transform.mat4();
 
 			vkCmdPushConstants(
 				command_buffer,
@@ -91,30 +92,6 @@ namespace Deco
 
 			object.m_model->bind(command_buffer);
 			object.m_model->draw(command_buffer);
-		}
-	}
-
-	void SimpleRenderSystem::sierpinski(
-		std::vector<DecoModel::Vertex>& vertices,
-		int depth,
-		glm::vec2 left,
-		glm::vec2 right,
-		glm::vec2 top)
-	{
-		if (depth <= 0)
-		{
-			vertices.push_back({ top });
-			vertices.push_back({ right });
-			vertices.push_back({ left });
-		}
-		else
-		{
-			auto leftTop = 0.5f * (left + top);
-			auto rightTop = 0.5f * (right + top);
-			auto leftRight = 0.5f * (left + right);
-			sierpinski(vertices, depth - 1, left, leftRight, leftTop);
-			sierpinski(vertices, depth - 1, leftRight, right, rightTop);
-			sierpinski(vertices, depth - 1, leftTop, rightTop, top);
 		}
 	}
 }

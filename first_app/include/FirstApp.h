@@ -8,6 +8,8 @@
 #include <memory>
 #include <vector>
 
+#define MAX_FRAME_TIME 0.03f
+
 namespace Deco
 {
 	class FirstApp
@@ -27,7 +29,6 @@ namespace Deco
 	private:
 		void loadGameObjects();
 
-		void sierpinski(std::vector<DecoModel::Vertex>& vertices, int depth, glm::vec2 left, glm::vec2 right, glm::vec2 top);
 	private:
 		DecoWindow m_deco_window{ WIDTH, HEIGHT, "Hello Vulkan!" };
 		DecoDevice m_deco_device{ m_deco_window };

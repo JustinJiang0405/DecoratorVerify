@@ -22,6 +22,11 @@ namespace Deco
 		return m_deco_swap_chain->getRenderPass();
 	}
 
+	float DecoRenderer::getAspectRatio() const
+	{
+		return m_deco_swap_chain->extentAspectRatio();
+	}
+
 	bool DecoRenderer::isFrameInProgress() const
 	{
 		return m_is_frame_started;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "deco_camera.h"
 #include "deco_device.h"
 #include "deco_game_object.h"
 #include "deco_pipeline.h"
@@ -18,12 +19,11 @@ namespace Deco
 		SimpleRenderSystem(const SimpleRenderSystem&) = delete;
 		SimpleRenderSystem& operator=(const SimpleRenderSystem&) = delete;
 
-		void renderGameObjects(VkCommandBuffer command_buffer, std::vector<DecoGameObject> &game_objects);
+		void renderGameObjects(VkCommandBuffer command_buffer, std::vector<DecoGameObject> &game_objects, const DecoCamera &camera);
 	private:
 		void createPipelineLayout();
 		void createPipeline(VkRenderPass render_pass);
 
-		void sierpinski(std::vector<DecoModel::Vertex>& vertices, int depth, glm::vec2 left, glm::vec2 right, glm::vec2 top);
 	private:
 		DecoDevice& m_deco_device;
 
