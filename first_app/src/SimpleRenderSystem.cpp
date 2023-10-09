@@ -14,7 +14,7 @@ namespace Deco
 	struct SimplePushConstantData
 	{
 		glm::mat4 transform{ 1.0f };
-		alignas(16) glm::vec3 color;
+		glm::mat4 normal_matrix{ 1.0f };
 	};
 
 	SimpleRenderSystem::SimpleRenderSystem(DecoDevice& device, VkRenderPass render_pass) : m_deco_device(device)
@@ -79,8 +79,8 @@ namespace Deco
 // 			object.m_transform.m_rotation.x = glm::mod(object.m_transform.m_rotation.x + 0.00005f, glm::two_pi<float>());
 
 			SimplePushConstantData push{};
-			push.color = object.m_color;
 			push.transform = projection_view * object.m_transform.mat4();
+			push.normal_matrix = object.m_transform.normalMatrix();
 
 			vkCmdPushConstants(
 				command_buffer,

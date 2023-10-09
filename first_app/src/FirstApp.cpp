@@ -71,11 +71,18 @@ namespace Deco
 
 	void FirstApp::loadGameObjects()
 	{
-		std::shared_ptr<DecoModel> lveModel = DecoModel::createModelFromFile(m_deco_device, "../resources/objs/smooth_vase.obj");
-		auto game_obj = DecoGameObject::createGameObject();
-		game_obj.m_model = lveModel;
-		game_obj.m_transform.m_translation = { .0f, .0f, 2.5f };
-		game_obj.m_transform.m_scale = glm::vec3(3.f);
-		m_deco_game_objects.push_back(std::move(game_obj));
+		std::shared_ptr<DecoModel> deco_model = DecoModel::createModelFromFile(m_deco_device, "../resources/objs/flat_vase.obj");
+		auto flat_vase = DecoGameObject::createGameObject();
+		flat_vase.m_model = deco_model;
+		flat_vase.m_transform.m_translation = { -.5f, .5f, 2.5f };
+		flat_vase.m_transform.m_scale = glm::vec3(3.f);
+		m_deco_game_objects.push_back(std::move(flat_vase));
+
+		deco_model = DecoModel::createModelFromFile(m_deco_device, "../resources/objs/smooth_vase.obj");
+		auto smooth_vase = DecoGameObject::createGameObject();
+		smooth_vase.m_model = deco_model;
+		smooth_vase.m_transform.m_translation = { .5f, .5f, 2.5f };
+		smooth_vase.m_transform.m_scale = glm::vec3(3.f);
+		m_deco_game_objects.push_back(std::move(smooth_vase));
 	}
 }
