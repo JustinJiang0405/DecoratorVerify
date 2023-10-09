@@ -67,11 +67,11 @@ namespace Deco
 			pipeline_config);
 	}
 
-	void SimpleRenderSystem::renderGameObjects(VkCommandBuffer command_buffer, std::vector<DecoGameObject>& game_objects, const DecoCamera& camera)
+	void SimpleRenderSystem::renderGameObjects(FrameInfo& frame_info, std::vector<DecoGameObject>& game_objects)
 	{
-		m_deco_pipeline->bind(command_buffer);
+		m_deco_pipeline->bind(frame_info.command_buffer);
 
-		auto projection_view = camera.getProjection() * camera.getView();
+		auto projection_view = frame_info.camera.getProjection() * frame_info.camera.getView();
 
 		for (auto& object : game_objects)
 		{
@@ -83,15 +83,15 @@ namespace Deco
 			push.normal_matrix = object.m_transform.normalMatrix();
 
 			vkCmdPushConstants(
-				command_buffer,
+				frame_info.command_buffer,
 				m_pipeline_layout,
 				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 				0,
 				sizeof(SimplePushConstantData),
 				&push);
 
-			object.m_model->bind(command_buffer);
-			object.m_model->draw(command_buffer);
+			object.m_model->bind(frame_info.command_buffer);
+			object.m_model->draw(frame_info.command_buffer);
 		}
 	}
 }

@@ -4,6 +4,7 @@
 #include "deco_device.h"
 #include "deco_game_object.h"
 #include "deco_pipeline.h"
+#include "deco_frame_info.h"
 
 #include <memory>
 #include <vector>
@@ -19,7 +20,7 @@ namespace Deco
 		SimpleRenderSystem(const SimpleRenderSystem&) = delete;
 		SimpleRenderSystem& operator=(const SimpleRenderSystem&) = delete;
 
-		void renderGameObjects(VkCommandBuffer command_buffer, std::vector<DecoGameObject> &game_objects, const DecoCamera &camera);
+		void renderGameObjects(FrameInfo& frame_info, std::vector<DecoGameObject> &game_objects);
 	private:
 		void createPipelineLayout();
 		void createPipeline(VkRenderPass render_pass);

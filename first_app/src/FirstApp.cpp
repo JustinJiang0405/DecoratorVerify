@@ -1,5 +1,6 @@
 #include "FirstApp.h"
 
+#include "deco_buffer.h"
 #include "deco_camera.h"
 #include "KeyboardMovementController.h"
 #include "SimpleRenderSystem.h"
@@ -16,6 +17,12 @@
 
 namespace Deco
 {
+	struct GlobalUbo
+	{
+		glm::mat4 projection_view{ 1.0f };
+		glm::vec3 light_direction = glm::normalize(glm::vec3{ 1.0f, -3.0f, -1.0f });
+	};
+
 	FirstApp::FirstApp()
 	{
 		loadGameObjects();
@@ -25,6 +32,16 @@ namespace Deco
 
 	void FirstApp::run()
 	{
+		DecoBuffer global_ubo_buffer{
+			m_deco_device,
+			sizeof(GlobalUbo),
+			DecoSwapChain::MAX_FRAMES_IN_FLIGHT,
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+			m_deco_device.properties.limits.minUniformBufferOffsetAlignment,
+		};
+		global_ubo_buffer.map();
+
 		SimpleRenderSystem simple_render_system{ m_deco_device, m_deco_renderer.getSwapChainRenderPass() };
 		DecoCamera camera{};
 		//camera.setViewDirection(glm::vec3(0.0f), glm::vec3(0.5f, 0.0f, 1.0f));
@@ -55,12 +72,23 @@ namespace Deco
 			
 			if (auto command_buffer = m_deco_renderer.beginFrame())
 			{
-				// begin offscreen shadow pass
-				// render shadow casting objects
-				// end offscreen shadow pass
+				int frame_index = m_deco_renderer.getFrameIndex();
+				FrameInfo frame_info{
+					frame_index,
+					frame_time,
+					command_buffer,
+					camera
+				};
 
+				//update
+				GlobalUbo ubo{};
+				ubo.projection_view = camera.getProjection() * camera.getView();
+				global_ubo_buffer.writeToIndex(&ubo, frame_index);
+				global_ubo_buffer.flushIndex(frame_index);
+
+				//render
 				m_deco_renderer.beginSwapChainRenderPass(command_buffer);
-				simple_render_system.renderGameObjects(command_buffer, m_deco_game_objects, camera);
+				simple_render_system.renderGameObjects(frame_info, m_deco_game_objects);
 				m_deco_renderer.endSwapChainRenderPass(command_buffer);
 				m_deco_renderer.endFrame();
 			}

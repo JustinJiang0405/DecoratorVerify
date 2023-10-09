@@ -1,6 +1,7 @@
 #pragma once
 
 #include "deco_device.h"
+#include "deco_buffer.h"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -58,14 +59,12 @@ namespace Deco
 		DecoDevice m_deco_device;
 
 		// vertex buffer
-		VkBuffer m_vertex_buffer;
-		VkDeviceMemory m_vertex_buffer_memory;
+		std::unique_ptr<DecoBuffer> m_vertex_buffer;
 		uint32_t m_vertex_count;
 
 		// index buffer
 		bool m_has_index_buffer{ false };
-		VkBuffer m_index_buffer;
-		VkDeviceMemory m_index_buffer_memory;
+		std::unique_ptr<DecoBuffer> m_index_buffer;
 		uint32_t m_index_count;
 	};
 }

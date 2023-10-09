@@ -36,14 +36,6 @@ namespace Deco
 
 	DecoModel::~DecoModel()
 	{
-		vkDestroyBuffer(m_deco_device.device(), m_vertex_buffer, nullptr);
-		vkFreeMemory(m_deco_device.device(), m_vertex_buffer_memory, nullptr);
-
-		if (m_has_index_buffer)
-		{
-			vkDestroyBuffer(m_deco_device.device(), m_index_buffer, nullptr);
-			vkFreeMemory(m_deco_device.device(), m_index_buffer_memory, nullptr);
-		}
 	}
 
 	void DecoModel::createVertexBuffers(const std::vector<Vertex>& vertices)
@@ -52,33 +44,29 @@ namespace Deco
 		assert(m_vertex_count >= 3 && "Vertex count must be at least 3");
 		VkDeviceSize buffer_size = sizeof(vertices[0]) * m_vertex_count;
 
-		VkBuffer staging_buffer;
-		VkDeviceMemory staging_buffer_memory;
-		m_deco_device.createBuffer(
-			buffer_size,
+		uint32_t vertex_size = sizeof(vertices[0]);
+
+		DecoBuffer staging_buffer
+		{
+			m_deco_device,
+			vertex_size,
+			m_vertex_count,
 			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			staging_buffer,
-			staging_buffer_memory);
+		};
 
-		void* data;
-		vkMapMemory(m_deco_device.device(), staging_buffer_memory, 0, buffer_size, 0, &data);
-		memcpy(data, vertices.data(), static_cast<size_t>(buffer_size));
-		vkUnmapMemory(m_deco_device.device(), staging_buffer_memory);
+		staging_buffer.map();
+		staging_buffer.writeToBuffer((void*)vertices.data());
 
-		m_deco_device.createBuffer(
-			buffer_size,
+		m_vertex_buffer = std::make_unique<DecoBuffer>(
+			m_deco_device,
+			vertex_size,
+			m_vertex_count,
 			VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-			m_vertex_buffer,
-			m_vertex_buffer_memory);
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 		// move the content from the staging buffer to the vertex buffer
-		m_deco_device.copyBuffer(staging_buffer, m_vertex_buffer, buffer_size);
-
-		// release staging buffer
-		vkDestroyBuffer(m_deco_device.device(), staging_buffer, nullptr);
-		vkFreeMemory(m_deco_device.device(), staging_buffer_memory, nullptr);
+		m_deco_device.copyBuffer(staging_buffer.getBuffer(), m_vertex_buffer->getBuffer(), buffer_size);
 	}
 
 	void DecoModel::createIndexBuffers(const std::vector<uint32_t>& indices)
@@ -92,34 +80,28 @@ namespace Deco
 		}
 
 		VkDeviceSize buffer_size = sizeof(indices[0]) * m_index_count;
+		uint32_t index_size = sizeof(indices[0]);
 
-		VkBuffer staging_buffer;
-		VkDeviceMemory staging_buffer_memory;
-		m_deco_device.createBuffer(
-			buffer_size,
+		DecoBuffer staging_buffer{
+			m_deco_device,
+			index_size,
+			m_index_count,
 			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			staging_buffer,
-			staging_buffer_memory);
+		};
 
-		void* data;
-		vkMapMemory(m_deco_device.device(), staging_buffer_memory, 0, buffer_size, 0, &data);
-		memcpy(data, indices.data(), static_cast<size_t>(buffer_size));
-		vkUnmapMemory(m_deco_device.device(), staging_buffer_memory);
+		staging_buffer.map();
+		staging_buffer.writeToBuffer((void*)indices.data());
 
-		m_deco_device.createBuffer(
-			buffer_size,
+		m_index_buffer = std::make_unique<DecoBuffer>(
+			m_deco_device,
+			index_size,
+			m_index_count,
 			VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-			m_index_buffer,
-			m_index_buffer_memory);
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 		// move the content from the staging buffer to the vertex buffer
-		m_deco_device.copyBuffer(staging_buffer, m_index_buffer, buffer_size);
-
-		// release staging buffer
-		vkDestroyBuffer(m_deco_device.device(), staging_buffer, nullptr);
-		vkFreeMemory(m_deco_device.device(), staging_buffer_memory, nullptr);
+		m_deco_device.copyBuffer(staging_buffer.getBuffer(), m_index_buffer->getBuffer(), buffer_size);
 	}
 
 	std::unique_ptr<DecoModel> DecoModel::createModelFromFile(DecoDevice& device, const std::string& file_path)
@@ -132,13 +114,13 @@ namespace Deco
 
 	void DecoModel::bind(VkCommandBuffer command_buffer)
 	{
-		VkBuffer buffers[] = { m_vertex_buffer };
+		VkBuffer buffers[] = { m_vertex_buffer->getBuffer() };
 		VkDeviceSize offsets[] = { 0 };
 		vkCmdBindVertexBuffers(command_buffer, 0, 1, buffers, offsets);
 
 		if (m_has_index_buffer)
 		{
-			vkCmdBindIndexBuffer(command_buffer, m_index_buffer, 0, VK_INDEX_TYPE_UINT32);
+			vkCmdBindIndexBuffer(command_buffer, m_index_buffer->getBuffer(), 0, VK_INDEX_TYPE_UINT32);
 		}
 	}
 
