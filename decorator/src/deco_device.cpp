@@ -464,6 +464,7 @@ namespace Deco {
 		submitInfo.pCommandBuffers = &commandBuffer;
 
 		vkQueueSubmit(graphicsQueue_, 1, &submitInfo, VK_NULL_HANDLE);
+		//to_do: use memory barrier to avoid idle
 		vkQueueWaitIdle(graphicsQueue_);
 
 		vkFreeCommandBuffers(device_, commandPool, 1, &commandBuffer);

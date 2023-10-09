@@ -35,6 +35,7 @@ include_directories(
     ${VULKAN_INCLUDE_DIR}
     ${GLFW_INCLUDE_DIR}
     ${GLM_INCLUDE_DIR}
+    ${TINYOBJ_INCLUDE_DIR}
 )
 
 add_custom_command(

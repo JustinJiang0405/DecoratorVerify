@@ -69,74 +69,13 @@ namespace Deco
 		vkDeviceWaitIdle(m_deco_device.device());
 	}
 
-	// temporary helper function, creates a 1x1x1 cube centered at offset
-	std::unique_ptr<DecoModel> createCubeModel(DecoDevice& device, glm::vec3 offset)
-	{
-		std::vector<DecoModel::Vertex> vertices{
-
-			// left face (white)
-			{{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
-			{{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
-			{{-.5f, -.5f, .5f}, {.9f, .9f, .9f}},
-			{{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
-			{{-.5f, .5f, -.5f}, {.9f, .9f, .9f}},
-			{{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
-
-			// right face (yellow)
-			{{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
-			{{.5f, .5f, .5f}, {.8f, .8f, .1f}},
-			{{.5f, -.5f, .5f}, {.8f, .8f, .1f}},
-			{{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
-			{{.5f, .5f, -.5f}, {.8f, .8f, .1f}},
-			{{.5f, .5f, .5f}, {.8f, .8f, .1f}},
-
-			// top face (orange, remember y axis points down)
-			{{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
-			{{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
-			{{-.5f, -.5f, .5f}, {.9f, .6f, .1f}},
-			{{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
-			{{.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
-			{{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
-
-			// bottom face (red)
-			{{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
-			{{.5f, .5f, .5f}, {.8f, .1f, .1f}},
-			{{-.5f, .5f, .5f}, {.8f, .1f, .1f}},
-			{{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
-			{{.5f, .5f, -.5f}, {.8f, .1f, .1f}},
-			{{.5f, .5f, .5f}, {.8f, .1f, .1f}},
-
-			// nose face (blue)
-			{{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
-			{{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
-			{{-.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
-			{{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
-			{{.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
-			{{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
-
-			// tail face (green)
-			{{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-			{{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
-			{{-.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
-			{{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-			{{.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-			{{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
-
-	};
-		for (auto& v : vertices) {
-			v.position += offset;
-		}
-		return std::make_unique<DecoModel>(device, vertices);
-}
-
 	void FirstApp::loadGameObjects()
 	{
-		std::shared_ptr<DecoModel> deco_model = createCubeModel(m_deco_device, { 0.0f, 0.0f, 0.0f });
-
-		auto cube = DecoGameObject::createGameObject();
-		cube.m_model = deco_model;
-		cube.m_transform.m_translation = { 0.0f, 0.0f, 2.5f };
-		cube.m_transform.m_scale = { 0.5f, 0.5f, 0.5f };
-		m_deco_game_objects.push_back(std::move(cube));
+		std::shared_ptr<DecoModel> lveModel = DecoModel::createModelFromFile(m_deco_device, "../resources/objs/smooth_vase.obj");
+		auto game_obj = DecoGameObject::createGameObject();
+		game_obj.m_model = lveModel;
+		game_obj.m_transform.m_translation = { .0f, .0f, 2.5f };
+		game_obj.m_transform.m_scale = glm::vec3(3.f);
+		m_deco_game_objects.push_back(std::move(game_obj));
 	}
 }
