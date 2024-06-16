@@ -12,6 +12,8 @@ namespace Deco
 		PipelineConfigInfo(const PipelineConfigInfo&) = delete;
 		PipelineConfigInfo& operator=(const PipelineConfigInfo&) = delete;
 
+		std::vector<VkVertexInputBindingDescription> bindingDescriptions{};
+		std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
 		VkPipelineViewportStateCreateInfo m_viewport_info;
 		VkPipelineInputAssemblyStateCreateInfo m_input_assembly_info;
 		VkPipelineRasterizationStateCreateInfo m_rasterization_info;

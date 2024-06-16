@@ -3,7 +3,9 @@
 #include "deco_model.h"
 
 #include <glm/gtc/matrix_transform.hpp>
+
 #include <memory>
+#include <unordered_map>
 
 namespace Deco
 {
@@ -23,6 +25,7 @@ namespace Deco
 	{
 	public:
 		using GameObjectID = unsigned int;
+		using Map = std::unordered_map<GameObjectID, DecoGameObject>;
 
 		DecoGameObject(const DecoGameObject&) = delete;
 		DecoGameObject& operator=(const DecoGameObject&) = delete;

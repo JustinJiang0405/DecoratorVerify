@@ -96,6 +96,9 @@ namespace Deco
 		config_info.m_dynamic_state_info.pDynamicStates = config_info.m_dynamic_state_enables.data();
 		config_info.m_dynamic_state_info.dynamicStateCount = static_cast<uint32_t>(config_info.m_dynamic_state_enables.size());
 		config_info.m_dynamic_state_info.flags = 0;
+
+		config_info.bindingDescriptions = DecoModel::Vertex::getBindingDescriptions();
+		config_info.attributeDescriptions = DecoModel::Vertex::getAttributeDescriptions();
 	}
 
 	std::vector<char> DecoPipeline::readFile(const std::string& file_path)

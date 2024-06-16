@@ -11,18 +11,18 @@
 
 namespace Deco
 {
-	class SimpleRenderSystem
+	class PointLightSystem
 	{
 	public:
-		SimpleRenderSystem(DecoDevice& device, VkRenderPass render_pass);
-		~SimpleRenderSystem();
+		PointLightSystem(DecoDevice& device, VkRenderPass render_pass, VkDescriptorSetLayout global_set_layout);
+		~PointLightSystem();
 
-		SimpleRenderSystem(const SimpleRenderSystem&) = delete;
-		SimpleRenderSystem& operator=(const SimpleRenderSystem&) = delete;
+		PointLightSystem(const PointLightSystem&) = delete;
+		PointLightSystem& operator=(const PointLightSystem&) = delete;
 
-		void renderGameObjects(FrameInfo& frame_info, std::vector<DecoGameObject> &game_objects);
+		void render(FrameInfo& frame_info);
 	private:
-		void createPipelineLayout();
+		void createPipelineLayout(VkDescriptorSetLayout global_set_layout);
 		void createPipeline(VkRenderPass render_pass);
 
 	private:

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "deco_descriptors.h"
 #include "deco_device.h"
 #include "deco_game_object.h"
 #include "deco_renderer.h"
@@ -9,6 +10,8 @@
 #include <vector>
 
 #define MAX_FRAME_TIME 0.03f
+
+#error 29
 
 namespace Deco
 {
@@ -34,7 +37,9 @@ namespace Deco
 		DecoDevice m_deco_device{ m_deco_window };
 		DecoRenderer m_deco_renderer{ m_deco_window, m_deco_device };
 
-		std::vector<DecoGameObject> m_deco_game_objects;
+		// note: order of declarations matters
+		std::unique_ptr<DecoDescriptorPool> m_global_pool{};
+		DecoGameObject::Map m_deco_game_objects;
 	};
 }
 

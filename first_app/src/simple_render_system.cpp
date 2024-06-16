@@ -1,4 +1,4 @@
-#include "SimpleRenderSystem.h"
+#include "simple_render_system.h"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -13,13 +13,13 @@ namespace Deco
 {
 	struct SimplePushConstantData
 	{
-		glm::mat4 transform{ 1.0f };
+		glm::mat4 model_matrix{ 1.0f };
 		glm::mat4 normal_matrix{ 1.0f };
 	};
 
-	SimpleRenderSystem::SimpleRenderSystem(DecoDevice& device, VkRenderPass render_pass) : m_deco_device(device)
+	SimpleRenderSystem::SimpleRenderSystem(DecoDevice& device, VkRenderPass render_pass, VkDescriptorSetLayout global_set_layout) : m_deco_device(device)
 	{
-		createPipelineLayout();
+		createPipelineLayout(global_set_layout);
 		createPipeline(render_pass);
 	}
 
@@ -28,17 +28,19 @@ namespace Deco
 		vkDestroyPipelineLayout(m_deco_device.device(), m_pipeline_layout, nullptr);
 	}
 
-	void SimpleRenderSystem::createPipelineLayout()
+	void SimpleRenderSystem::createPipelineLayout(VkDescriptorSetLayout global_set_layout)
 	{
 		VkPushConstantRange push_constant_range{};
 		push_constant_range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 		push_constant_range.offset = 0;
 		push_constant_range.size = sizeof(SimplePushConstantData);
 
+		std::vector<VkDescriptorSetLayout> descriptor_set_layouts{ global_set_layout };
+
 		VkPipelineLayoutCreateInfo pipeline_layout_info{};
 		pipeline_layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipeline_layout_info.setLayoutCount = 0;
-		pipeline_layout_info.pSetLayouts = nullptr;
+		pipeline_layout_info.setLayoutCount = static_cast<uint32_t>(descriptor_set_layouts.size());
+		pipeline_layout_info.pSetLayouts = descriptor_set_layouts.data();
 		pipeline_layout_info.pushConstantRangeCount = 1;
 		pipeline_layout_info.pPushConstantRanges = &push_constant_range;
 
@@ -67,19 +69,27 @@ namespace Deco
 			pipeline_config);
 	}
 
-	void SimpleRenderSystem::renderGameObjects(FrameInfo& frame_info, std::vector<DecoGameObject>& game_objects)
+	void SimpleRenderSystem::renderGameObjects(FrameInfo& frame_info)
 	{
 		m_deco_pipeline->bind(frame_info.command_buffer);
 
-		auto projection_view = frame_info.camera.getProjection() * frame_info.camera.getView();
+		vkCmdBindDescriptorSets(
+			frame_info.command_buffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			m_pipeline_layout,
+			0,
+			1,
+			&frame_info.global_descriptor_set,
+			0,
+			nullptr);
 
-		for (auto& object : game_objects)
+		for (auto& kv : frame_info.game_objects)
 		{
-// 			object.m_transform.m_rotation.y = glm::mod(object.m_transform.m_rotation.y + 0.0001f, glm::two_pi<float>());
-// 			object.m_transform.m_rotation.x = glm::mod(object.m_transform.m_rotation.x + 0.00005f, glm::two_pi<float>());
+			auto& object = kv.second;
+			if (object.m_model == nullptr) continue;
 
 			SimplePushConstantData push{};
-			push.transform = projection_view * object.m_transform.mat4();
+			push.model_matrix = object.m_transform.mat4();
 			push.normal_matrix = object.m_transform.normalMatrix();
 
 			vkCmdPushConstants(
